@@ -1,4 +1,7 @@
 # processor-assembler
+# Use
+###python assembler.py -i input_file -o output_file
+
 # Instruction Table
 #------------------------------------------------------
 ###Load R, M 		           -> 0000000r, mmmmmmmm
