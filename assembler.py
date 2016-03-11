@@ -1,6 +1,5 @@
 #! /usr/bin/python
 
-# Author: Jesse Millwood
 
 import re
 import sys
@@ -29,9 +28,9 @@ Python Version: 2.7
 # OR R                  -> 1011010r
 # XOR R                 -> 1100010r
 ###################################
-# BREQ A                -> 10010110, mmmmmmmm
-# BRTQ A                -> 10100110, mmmmmmmm
-# BLTQ A                -> 10110110, mmmmmmmm
+# BREQ A                -> 10010110, aaaaaaaa
+# BRTQ A                -> 10100110, aaaaaaaa
+# BLTQ A                -> 10110110, aaaaaaaa
 # GOTO A                -> 00000111, aaaaaaaa
 # GOTO_IDLE             -> 00001000
 # FUNCTION_CALL A       -> 00001001, aaaaaaaa
@@ -569,9 +568,9 @@ def main(argv):
                         print '# OR R                  -> 1011010r'
                         print '# XOR R                 -> 1100010r'
                         print '###################################'
-                        print '# BREQ A                -> 10010110, mmmmmmmm'
-                        print '# BRTQ A                -> 10100110, mmmmmmmm'
-                        print '# BLTQ A                -> 10110110, mmmmmmmm'
+                        print '# BREQ A                -> 10010110, aaaaaaaa'
+                        print '# BRTQ A                -> 10100110, aaaaaaaa'
+                        print '# BLTQ A                -> 10110110, aaaaaaaa'
                         print '# GOTO A                -> 00000111, aaaaaaaa'
                         print '# GOTO_IDLE             -> 00001000'
                         print '# FUNCTION_CALL A       -> 00001001, aaaaaaaa'
