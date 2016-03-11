@@ -143,14 +143,6 @@ def getMemoryValues(instructions, filename):
 			if tokens[0] <= 511 and tokens[2] <= 511:
 				memorydict[tokens[0]] = hex(tokens[2])[2:].zfill(2)
 
-		elif 'BEGIN' in tokens:
-			try:
-				offset = int(tokens[1])
-			except ValueError:
-				print 'Error at Line {}'.format(lineNumber)
-				print 'BEGIN location is not a number'
-				sys.exit(1)
-			increment = 0
 
 		elif 'LOAD' in tokens:
 			# convert memory parameter to an integer
