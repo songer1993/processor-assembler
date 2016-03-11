@@ -19,9 +19,9 @@
 ### AND R                 -> 1010010r
 ### OR R                  -> 1011010r
 ### XOR R                 -> 1100010r
-### BREQ A                -> 10010110, mmmmmmmm
-### BRTQ A                -> 10100110, mmmmmmmm
-### BLTQ A                -> 10110110, mmmmmmmm
+### BREQ A                -> 10010110, aaaaaaaa
+### BRTQ A                -> 10100110, aaaaaaaa
+### BLTQ A                -> 10110110, aaaaaaaa
 ### GOTO A                -> 00000111, aaaaaaaa
 ### GOTO_IDLE             -> 00001000
 ### FUNCTION_CALL A       -> 00001001, aaaaaaaa
