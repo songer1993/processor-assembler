@@ -3,6 +3,7 @@
 
 
 Instructions:
+#Comments
 LOAD A, 50
 STORE 40, A
 ADD A

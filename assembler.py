@@ -143,6 +143,8 @@ def getMemoryValues(instructions, filename):
 			if tokens[0] <= 511 and tokens[2] <= 511:
 				memorydict[tokens[0]] = hex(tokens[2])[2:].zfill(2)
 
+                elif tokens[0][0] == "#":
+                        continue
 
 		elif 'LOAD' in tokens:
 			# convert memory parameter to an integer
