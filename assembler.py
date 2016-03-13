@@ -38,9 +38,6 @@ Python Version: 2.7
 # DEREFERENCE R         -> 00001011+r
 
 ROM_SIZE = 256          # Instruction Memory of 256 bytes
-# Initalise label dictionary
-labels = {"TIMER_ISR": 0x0F,
-          "MOUSE_ISR": 0x0F}
 
 def createCOEfile(out_filename, memory_vals, lines):
 	'''
@@ -94,7 +91,8 @@ def readfile(in_path, out_filename, type):
         global labels
         with open(in_path, 'rb') as filehandle:
 		lines = [line.rstrip() for line in filehandle]
-	memory_vals = getMemoryValues(lines, out_filename)
+        labels = getLabelAddresses(lines)
+	memory_vals = getMemoryValues(lines, labels)
         memory_vals[0xFE] = labels["TIMER_ISR"][2:]
         memory_vals[0xFF] = labels["MOUSE_ISR"][2:]
 
@@ -121,16 +119,133 @@ def readfile(in_path, out_filename, type):
 		createDATfile(out_filename, memory_vals)
 
 
-
-
-def getMemoryValues(instructions, filename):
+def getLabelAddresses(instructions):
 	'''
 	Parses the lines in the Instruction file and stores the
 	contents of the memory address with the address in a
 	dictionary. This dictionary is returned
 	'''
 	# Create empty dictionary
-        global labels
+        # Initalise label dictionary
+        labels = {"TIMER_ISR": 0x0F,
+                  "MOUSE_ISR": 0x0F}
+
+	# Create variables for keeping track of memory blocks
+	offset = 0
+	increment = 1
+	lineNumber = 0
+
+	for line in instructions:
+		lineNumber+=1
+		line = line.upper()
+		tokens = re.split(r'[,\s]\s*',line)
+
+                # count required memory
+                if len(tokens) == 1 and tokens[0] == '':
+                        increment = 0
+                        continue
+
+                elif '#' in tokens[0]:
+                        increment = 0
+                        continue
+
+		elif 'LOAD' in tokens:
+			increment = 2
+
+		elif 'STORE' in tokens:
+			increment = 2
+
+		elif 'ADD' in tokens:
+			increment = 1
+
+		elif 'SUB' in tokens:
+			increment = 1
+
+		elif 'MULTIPLY' in tokens:
+			increment = 1
+
+		elif 'SHIFT_LEFT' in tokens:
+			increment = 1
+
+		elif 'SHIFT_RIGHT' in tokens:
+			increment = 1
+
+		elif 'INCREMENT' in tokens:
+			increment = 1
+
+		elif 'DECREMENT' in tokens:
+			increment = 1
+
+		elif 'IS_EQUAL' in tokens:
+			increment = 1
+
+		elif 'GREATER_THAN' in tokens:
+			increment = 1
+
+
+		elif 'LESS_THAN' in tokens:
+			increment = 1
+
+		elif 'AND' in tokens:
+			increment = 1
+
+		elif 'OR' in tokens:
+			increment = 1
+
+		elif 'XOR' in tokens:
+			increment = 1
+
+		elif 'BREQ' in tokens:
+			increment = 2
+
+		elif 'BGTQ' in tokens:
+			increment = 2
+
+		elif 'BLTQ' in tokens:
+			increment = 2
+
+
+		elif 'GOTO' in tokens:
+			increment = 2
+
+		elif 'GOTO_IDLE' in tokens:
+			increment = 1
+
+
+		elif 'FUNCTION_CALL' in tokens:
+			increment = 2
+
+                elif 'RETURN' in tokens:
+			increment = 1
+
+                elif 'DEREFERENCE' in tokens:
+			increment = 1
+
+                elif 'TIMER_ISR' in tokens[0]:
+                        labels["TIMER_ISR"] = hex(offset + 1).zfill(2)
+                        print labels["TIMER_ISR"]
+                        increment = 0
+
+                elif 'MOUSE_ISR' in tokens[0]:
+                        labels["MOUSE_ISR"] = hex(offset + 1).zfill(2)
+                        print labels["MOUSE_ISR"]
+                        increment = 0
+
+                else:
+                        labels[tokens[0].strip(':')] = hex(offset + 1)[2:].zfill(2)
+                        print labels
+                        increment = 0
+
+		offset += increment
+        return labels
+
+def getMemoryValues(instructions, labels):
+	'''
+	Parses the lines in the Instruction file and stores the
+	contents of the memory address with the address in a
+	dictionary. This dictionary is returned
+	'''
+	# Create empty dictionary
         memorydict = {}
 
 	# Create variables for keeping track of memory blocks
@@ -403,16 +518,19 @@ def getMemoryValues(instructions, filename):
 			increment = 1
 
 		elif 'BREQ' in tokens:
-			try:
+                        if tokens[1] in labels:
+                            instruction2 = labels[tokens[1]]
+                        else:
+			    try:
 				tokens[1] = int(tokens[1])
-			except ValueError:
+			    except ValueError:
 				print('Error at Line {}'.format(lineNumber))
 				print('Address ADDR is not a number')
 				sys.exit(1)
+                            instruction2 = int(tokens[1])
 
                         binary_instruction = 0b10010110
                         instruction1 = hex(binary_instruction)[2:].zfill(2)
-                        instruction2 = int(tokens[1])
 
                         # Store in memorydict
 			memorydict[offset+0] = instruction1
@@ -420,16 +538,19 @@ def getMemoryValues(instructions, filename):
 			increment = 2
 
 		elif 'BGTQ' in tokens:
-			try:
+                        if tokens[1] in labels:
+                            instruction2 = labels[tokens[1]]
+                        else:
+			    try:
 				tokens[1] = int(tokens[1])
-			except ValueError:
+			    except ValueError:
 				print('Error at Line {}'.format(lineNumber))
 				print('Address ADDR is not a number')
 				sys.exit(1)
+                            instruction2 = int(tokens[1])
 
                         binary_instruction = 0b10100110
                         instruction1 = hex(binary_instruction)[2:].zfill(2)
-                        instruction2 = int(tokens[1])
 
                         # Store in memorydict
 			memorydict[offset+0] = instruction1
@@ -437,16 +558,19 @@ def getMemoryValues(instructions, filename):
 			increment = 2
 
 		elif 'BLTQ' in tokens:
-			try:
+                        if tokens[1] in labels:
+                            instruction2 = labels[tokens[1]]
+                        else:
+			    try:
 				tokens[1] = int(tokens[1])
-			except ValueError:
+			    except ValueError:
 				print('Error at Line {}'.format(lineNumber))
 				print('Address ADDR is not a number')
 				sys.exit(1)
+                            instruction2 = int(tokens[1])
 
                         binary_instruction = 0b10110110
                         instruction1 = hex(binary_instruction)[2:].zfill(2)
-                        instruction2 = int(tokens[1])
 
                         # Store in memorydict
 			memorydict[offset+0] = instruction1
@@ -456,7 +580,7 @@ def getMemoryValues(instructions, filename):
 
 		elif 'GOTO' in tokens:
                         if tokens[1] in labels:
-                            instruction2 = labels[tokens[1]][2:]
+                            instruction2 = labels[tokens[1]]
                         else:
 			    try:
 				tokens[1] = int(tokens[1])
@@ -483,16 +607,19 @@ def getMemoryValues(instructions, filename):
 
 
 		elif 'FUNCTION_CALL' in tokens:
-			try:
+                        if tokens[1] in labels:
+                            instruction2 = labels[tokens[1]]
+                        else:
+			    try:
 				tokens[1] = int(tokens[1])
-			except ValueError:
+			    except ValueError:
 				print('Error at Line {}'.format(lineNumber))
 				print('Address ADDR is not a number')
 				sys.exit(1)
+                            instruction2 = int(tokens[1])
 
                         binary_instruction = 0b00001001
                         instruction1 = hex(binary_instruction)[2:].zfill(2)
-                        instruction2 = int(tokens[1])
 
                         # Store in memorydict
 			memorydict[offset+0] = instruction1
@@ -517,26 +644,8 @@ def getMemoryValues(instructions, filename):
 			memorydict[offset+0] = instruction1
 			increment = 1
 
-                elif 'TIMER_ISR' in tokens[0]:
-                        labels["TIMER_ISR"] = hex(offset + 1).zfill(2)
-                        print labels["TIMER_ISR"]
-                        increment = 0
-
-                elif 'MOUSE_ISR' in tokens[0]:
-                        labels["MOUSE_ISR"] = hex(offset + 1).zfill(2)
-                        print labels["MOUSE_ISR"]
-                        increment = 0
-
-                else:
-                        labels[tokens[0].strip(':')] = hex(offset + 1).zfill(2)
-                        print labels
-                        increment = 0
-
 		offset += increment
                 print "Offset {} at line {}".format(offset, lineNumber)
-
-
-
 
 	return memorydict
 

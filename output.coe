@@ -7,12 +7,16 @@ Instructions:
 LOAD A, 50
 STORE 40, A
 
+FUNCTION_CALL HELLO
+
 ADD A
 ADD B
 
 HELLO:
 SUB A
 SUB B
+RETURN
+
 MULTIPLY A
 MULTIPLY B
 SHIFT_LEFT A
@@ -25,6 +29,8 @@ DECREMENT A
 DECREMENT B
 IS_EQUAL A
 IS_EQUAL B
+
+
 
 TIMER_ISR:
 GREATER_THAN A
@@ -58,10 +64,13 @@ memory_initialization_vector =
 50
 02
 40
+09
+09
 04
 05
 14
 15
+0a
 24
 25
 34
@@ -101,7 +110,7 @@ b6
 00
 42
 07
-2d
+30
 00
 00
 00
@@ -305,8 +314,5 @@ b6
 00
 00
 00
-00
-00
-00
-15
-1d
+18
+20
