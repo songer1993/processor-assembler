@@ -221,17 +221,17 @@ def getLabelAddresses(instructions):
 			increment = 1
 
                 elif 'TIMER_ISR' in tokens[0]:
-                        labels["TIMER_ISR"] = hex(offset + 1)[2:].zfill(2)
+                        labels["TIMER_ISR"] = hex(offset)[2:].zfill(2)
                         print labels
                         increment = 0
 
                 elif 'MOUSE_ISR' in tokens[0]:
-                        labels["MOUSE_ISR"] = hex(offset + 1)[2:].zfill(2)
+                        labels["MOUSE_ISR"] = hex(offset)[2:].zfill(2)
                         print labels
                         increment = 0
 
                 else:
-                        labels[tokens[0].strip(':')] = hex(offset + 1)[2:].zfill(2)
+                        labels[tokens[0].strip(':')] = hex(offset)[2:].zfill(2)
                         print labels
                         increment = 0
 
