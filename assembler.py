@@ -88,13 +88,12 @@ def readfile(in_path, out_filename, type):
 	'''
 	Reads every line in the file and saves it to a list
 	'''
-        global labels
         with open(in_path, 'rb') as filehandle:
 		lines = [line.rstrip() for line in filehandle]
         labels = getLabelAddresses(lines)
 	memory_vals = getMemoryValues(lines, labels)
-        memory_vals[0xFE] = labels["TIMER_ISR"][2:]
-        memory_vals[0xFF] = labels["MOUSE_ISR"][2:]
+        memory_vals[0xFE] = labels["TIMER_ISR"]
+        memory_vals[0xFF] = labels["MOUSE_ISR"]
 
 	# strip any file indicators from out_filename
 	if '.' in out_filename:
@@ -222,13 +221,13 @@ def getLabelAddresses(instructions):
 			increment = 1
 
                 elif 'TIMER_ISR' in tokens[0]:
-                        labels["TIMER_ISR"] = hex(offset + 1).zfill(2)
-                        print labels["TIMER_ISR"]
+                        labels["TIMER_ISR"] = hex(offset + 1)[2:].zfill(2)
+                        print labels
                         increment = 0
 
                 elif 'MOUSE_ISR' in tokens[0]:
-                        labels["MOUSE_ISR"] = hex(offset + 1).zfill(2)
-                        print labels["MOUSE_ISR"]
+                        labels["MOUSE_ISR"] = hex(offset + 1)[2:].zfill(2)
+                        print labels
                         increment = 0
 
                 else:
@@ -645,7 +644,7 @@ def getMemoryValues(instructions, labels):
 			increment = 1
 
 		offset += increment
-                print "Offset {} at line {}".format(offset, lineNumber)
+                #print "Offset {} at line {}".format(offset, lineNumber)
 
 	return memorydict
 
