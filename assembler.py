@@ -38,6 +38,9 @@ Python Version: 2.7
 # DEREFERENCE R         -> 00001011+r
 
 ROM_SIZE = 256          # Instruction Memory of 256 bytes
+# Initalise label dictionary
+labels = {"TIMER_ISR": 0x0F,
+          "MOUSE_ISR": 0x0F}
 
 def createCOEfile(out_filename, memory_vals, lines):
 	'''
@@ -78,6 +81,7 @@ def createDATfile(out_filename, memory_vals):
 			if memory_vals.has_key(mem_address):
 				f.write(str(memory_vals[mem_address])+'\n')
 				#print'Address:{} Value:{}'.format(mem_address, memory_vals[mem_address])
+
 			else:
 				f.write('00\n')
 		f.write('')
@@ -87,9 +91,12 @@ def readfile(in_path, out_filename, type):
 	'''
 	Reads every line in the file and saves it to a list
 	'''
-	with open(in_path, 'rb') as filehandle:
+        global labels
+        with open(in_path, 'rb') as filehandle:
 		lines = [line.rstrip() for line in filehandle]
 	memory_vals = getMemoryValues(lines, out_filename)
+        memory_vals[0xFE] = labels["TIMER_ISR"][2:]
+        memory_vals[0xFF] = labels["MOUSE_ISR"][2:]
 
 	# strip any file indicators from out_filename
 	if '.' in out_filename:
@@ -123,7 +130,9 @@ def getMemoryValues(instructions, filename):
 	dictionary. This dictionary is returned
 	'''
 	# Create empty dictionary
-	memorydict = {}
+        global labels
+        memorydict = {}
+
 	# Create variables for keeping track of memory blocks
 	offset = 0
 	increment = 1
@@ -132,8 +141,9 @@ def getMemoryValues(instructions, filename):
 	for line in instructions:
 		lineNumber+=1
 		line = line.upper()
-		tokens = re.split(r'[,:\s]\s*',line)
+		tokens = re.split(r'[,\s]\s*',line)
 
+                #print tokens
 		if tokens[0].isdigit():
 			# Store the initialized memory
 			# value  and contents to be set after the op
@@ -143,8 +153,19 @@ def getMemoryValues(instructions, filename):
 			if tokens[0] <= 511 and tokens[2] <= 511:
 				memorydict[tokens[0]] = hex(tokens[2])[2:].zfill(2)
 
-                elif tokens[0][0] == "#":
+                elif len(tokens) == 1 and tokens[0] == '':
+			print('Empty Line {}'.format(lineNumber))
+                        increment = 0
+                        #lineNumber -= 1
                         continue
+
+
+
+                elif '#' in tokens[0]:
+                        #lineNumber -= 1
+                        increment = 0
+                        continue
+
 
 		elif 'LOAD' in tokens:
 			# convert memory parameter to an integer
@@ -434,16 +455,20 @@ def getMemoryValues(instructions, filename):
 
 
 		elif 'GOTO' in tokens:
-			try:
+                        if tokens[1] in labels:
+                            instruction2 = labels[tokens[1]][2:]
+                        else:
+			    try:
 				tokens[1] = int(tokens[1])
-			except ValueError:
+			    except ValueError:
 				print('Error at Line {}'.format(lineNumber))
 				print('Address ADDR is not a number')
 				sys.exit(1)
+                            instruction2 = int(tokens[1])
+
 
                         binary_instruction = 0b00000111
                         instruction1 = hex(binary_instruction)[2:].zfill(2)
-                        instruction2 = int(tokens[1])
 
                         # Store in memorydict
 			memorydict[offset+0] = instruction1
@@ -492,9 +517,27 @@ def getMemoryValues(instructions, filename):
 			memorydict[offset+0] = instruction1
 			increment = 1
 
+                elif 'TIMER_ISR' in tokens[0]:
+                        labels["TIMER_ISR"] = hex(offset + 1).zfill(2)
+                        print labels["TIMER_ISR"]
+                        increment = 0
 
-		# Keep track of number of elements away from the 'BEGIN' Directive
+                elif 'MOUSE_ISR' in tokens[0]:
+                        labels["MOUSE_ISR"] = hex(offset + 1).zfill(2)
+                        print labels["MOUSE_ISR"]
+                        increment = 0
+
+                else:
+                        labels[tokens[0].strip(':')] = hex(offset + 1).zfill(2)
+                        print labels
+                        increment = 0
+
 		offset += increment
+                print "Offset {} at line {}".format(offset, lineNumber)
+
+
+
+
 	return memorydict
 
 
