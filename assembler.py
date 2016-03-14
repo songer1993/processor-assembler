@@ -141,8 +141,8 @@ def getLabelAddresses(instructions):
 	'''
 	# Create empty dictionary
         # Initalise label dictionary
-        labels = {"TIMER_ISR": 0x0F,
-                  "MOUSE_ISR": 0x0F}
+        labels = {"TIMER_ISR": 0xFC,
+                  "MOUSE_ISR": 0xFD}
 
 	# Create variables for keeping track of memory blocks
 	offset = 0
@@ -184,10 +184,16 @@ def getLabelAddresses(instructions):
 		elif 'SHIFT_RIGHT' in tokens:
 			increment = 1
 
-		elif 'INCREMENT' in tokens:
+		elif 'INCREMENT_A' in tokens:
 			increment = 1
 
-		elif 'DECREMENT' in tokens:
+		elif 'INCREMENT_B' in tokens:
+			increment = 1
+
+		elif 'DECREMENT_A' in tokens:
+			increment = 1
+
+		elif 'DECREMENT_B' in tokens:
 			increment = 1
 
 		elif 'IS_EQUAL' in tokens:
@@ -314,10 +320,9 @@ def getMemoryValues(instructions, labels):
 			else:
 				# Set bit representing the register
 				r = '0' if 'A' in tokens[1] else '1'
-				# Set bit representing the page and
-				p = '0' if tokens[2]<=255 else '1'
+
 		 	# Put together instructions
-                        binary_instruction = int((p+'000000'+ r), 2)
+                        binary_instruction = int(('0000000'+ r), 2)
                         instruction1 = hex(binary_instruction)[2:].zfill(2)
 
                         # Store in memorydict
@@ -339,10 +344,8 @@ def getMemoryValues(instructions, labels):
 			else:
 				# Set bit representing the register
 				r = '0' if 'A' in tokens[2] else '1'
-				# Set bit representing the page and
-				p = '0' if tokens[1]<=255 else '1'
 		 	# Put together instructions
-                        binary_instruction = int((p+'000001'+ r), 2)
+                        binary_instruction = int(('0000001'+ r), 2)
                         instruction1 = hex(binary_instruction)[2:].zfill(2)
                         instruction2 = hex(tokens[1])[2:].zfill(2)
 
@@ -427,7 +430,7 @@ def getMemoryValues(instructions, labels):
 			increment = 1
                         increment1 = 0
 
-		elif 'INCREMENT' in tokens:
+		elif 'INCREMENT_A' in tokens:
 			# Set bit representing the register
 			if 'A' not in tokens[1] and 'B' not in tokens[1]:
 				print('ERROR at Line {}'.format(lineNumber))
@@ -442,7 +445,7 @@ def getMemoryValues(instructions, labels):
 			increment = 1
                         increment1 = 0
 
-		elif 'DECREMENT' in tokens:
+		elif 'INCREMENT_B' in tokens:
 			# Set bit representing the register
 			if 'A' not in tokens[1] and 'B' not in tokens[1]:
 				print('ERROR at Line {}'.format(lineNumber))
@@ -457,7 +460,8 @@ def getMemoryValues(instructions, labels):
 			increment = 1
                         increment1 = 0
 
-		elif 'IS_EQUAL' in tokens:
+
+		elif 'DECREMENT_A' in tokens:
 			# Set bit representing the register
 			if 'A' not in tokens[1] and 'B' not in tokens[1]:
 				print('ERROR at Line {}'.format(lineNumber))
@@ -472,7 +476,7 @@ def getMemoryValues(instructions, labels):
 			increment = 1
                         increment1 = 0
 
-		elif 'GREATER_THAN' in tokens:
+		elif 'DECREMENT_B' in tokens:
 			# Set bit representing the register
 			if 'A' not in tokens[1] and 'B' not in tokens[1]:
 				print('ERROR at Line {}'.format(lineNumber))
@@ -488,7 +492,8 @@ def getMemoryValues(instructions, labels):
                         increment1 = 0
 
 
-		elif 'LESS_THAN' in tokens:
+
+		elif 'IS_EQUAL' in tokens:
 			# Set bit representing the register
 			if 'A' not in tokens[1] and 'B' not in tokens[1]:
 				print('ERROR at Line {}'.format(lineNumber))
@@ -503,7 +508,7 @@ def getMemoryValues(instructions, labels):
 			increment = 1
                         increment1 = 0
 
-		elif 'AND' in tokens:
+		elif 'GREATER_THAN' in tokens:
 			# Set bit representing the register
 			if 'A' not in tokens[1] and 'B' not in tokens[1]:
 				print('ERROR at Line {}'.format(lineNumber))
@@ -518,7 +523,8 @@ def getMemoryValues(instructions, labels):
 			increment = 1
                         increment1 = 0
 
-		elif 'OR' in tokens:
+
+		elif 'LESS_THAN' in tokens:
 			# Set bit representing the register
 			if 'A' not in tokens[1] and 'B' not in tokens[1]:
 				print('ERROR at Line {}'.format(lineNumber))
@@ -533,7 +539,7 @@ def getMemoryValues(instructions, labels):
 			increment = 1
                         increment1 = 0
 
-		elif 'XOR' in tokens:
+		elif 'AND' in tokens:
 			# Set bit representing the register
 			if 'A' not in tokens[1] and 'B' not in tokens[1]:
 				print('ERROR at Line {}'.format(lineNumber))
@@ -543,6 +549,36 @@ def getMemoryValues(instructions, labels):
 				# Set bit representing the register
 				r = '0' if 'A' in tokens[1] else '1'
                         binary_instruction = int(('1100010' + r), 2)
+                        instruction1 = hex(binary_instruction)[2:].zfill(2)
+			memorydict[offset+0] = instruction1
+			increment = 1
+                        increment1 = 0
+
+		elif 'OR' in tokens:
+			# Set bit representing the register
+			if 'A' not in tokens[1] and 'B' not in tokens[1]:
+				print('ERROR at Line {}'.format(lineNumber))
+				print('Unknown Register {}'.format(tokens[1]))
+				sys.exit(1)
+			else:
+				# Set bit representing the register
+				r = '0' if 'A' in tokens[1] else '1'
+                        binary_instruction = int(('1101010' + r), 2)
+                        instruction1 = hex(binary_instruction)[2:].zfill(2)
+			memorydict[offset+0] = instruction1
+			increment = 1
+                        increment1 = 0
+
+		elif 'XOR' in tokens:
+			# Set bit representing the register
+			if 'A' not in tokens[1] and 'B' not in tokens[1]:
+				print('ERROR at Line {}'.format(lineNumber))
+				print('Unknown Register {}'.format(tokens[1]))
+				sys.exit(1)
+			else:
+				# Set bit representing the register
+				r = '0' if 'A' in tokens[1] else '1'
+                        binary_instruction = int(('1110010' + r), 2)
                         instruction1 = hex(binary_instruction)[2:].zfill(2)
 			memorydict[offset+0] = instruction1
 			increment = 1

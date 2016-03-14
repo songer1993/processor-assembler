@@ -19,26 +19,6 @@
 # // Additional Comments: "python assembler.py" will process this file.
 # // 
 # //////////////////////////////////////////////////////////////////////////////////
-INIT:   # Initialisation
-# Mouse
-LOAD A, $00
-STORE A0, A
-LOAD A, $50
-STORE A1, A
-LOAD A, $3C
-STORE A2, A
-LOAD A, $80
-STORE A3, A
-# LEDs
-LOAD A, $00
-STORE C0, A
-LOAD A, $10
-STORE C1, A
-# Seven Segment Displays
-LOAD A, $00
-STORE D0, A
-LOAD A, $00
-STORE D1, A
 
 # Main Inifinite Loop
 MAIN:
@@ -48,10 +28,10 @@ GOTO MAIN
 
 
 # Mouse Interrupt Service Routine
-MOUSE_ISR: # Connect MouseStatus to Rightmost 3 LEDs
+MOUSE_ISR:
+
+# Connect MouseStatus to Rightmost 3 LEDs
 LOAD A, A0	# Load MouseStatus to A
-LOAD B, $07	# Load mask 00000111 to B
-AND A	    # Save filtered results to A
 STORE C0, A	# Store A to Right LEDS
 
 
@@ -68,82 +48,12 @@ STORE D1, A	# Save A to Second 2 7-Seg Displays
 # Connect MouseZ to Leftmost 8 LEDs
 # A software implemention of 3-to-8 decoding (flowing leds)
 LOAD A, A3	# Load MouseZ to A
-LOAD B, $E0	# Load mask 11100000 to B
-AND A		# Save the masked result to A
-# If A equals 000(00000)
-LOAD B, $00
-BREQ LED1
-# else compare A with 001(00000)
-LOAD B, $20
-BREQ LED2
-# else compare A with 010(00000)
-LOAD B, $40
-BREQ LED3
-# else compare A with 011(00000)
-LOAD B, $60
-BREQ LED4
-# else compare A with 100(00000)
-LOAD B, $80
-BREQ LED5
-# else compare A with 101(00000)
-LOAD B, $A0
-BREQ LED6
-# else compare A with 110(00000)
-LOAD B, $C0
-BREQ LED7
-# else compare A with 111(00000)
-LOAD B, $E0
-BREQ LED8
-# else turn off LED C1
-LOAD A, $00
 STORE C1, A
-GOTO END_MouseISR
-
-LED1:	# Turn on LED 1 of C1
-LOAD A, $01
-STORE C1, A
-GOTO END_MouseISR
-
-LED2:	# Turn on LED 2 of C1
-LOAD A, $02
-STORE C1, A
-GOTO END_MouseISR
-
-LED3:	# Turn on LED 3 of C1
-LOAD A, $04
-STORE C1, A
-GOTO END_MouseISR
-
-LED4:	# Turn on LED 4 of C1
-LOAD A, $08
-STORE C1, A
-GOTO END_MouseISR
-
-LED5:	# Turn on LED 5 of C1
-LOAD A, $10
-STORE C1, A
-GOTO END_MouseISR
-
-LED6:	# Turn on LED 6 of C1
-LOAD A, $20
-STORE C1, A
-GOTO END_MouseISR
-
-LED7:	# Turn on LED 7 of C1
-LOAD A, $40
-STORE C1, A
-GOTO END_MouseISR
-
-LED8:	# Turn on LED 8 of C1
-LOAD A, $80
-STORE C1, A
-GOTO END_MouseISR
-
 
 END_MouseISR:
 RETURN		# Return to where left (Main)
 
 
 # Timer ISR, not useful in this demo, so blank
-TIMER_ISR:
-RETURN
+#TIMER_ISR:
+#RETURN
