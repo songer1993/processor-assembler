@@ -70,7 +70,7 @@ def createDATfile(out_filename, memory_vals):
 	Creates a dat file containing just the values of memory at
 	their locations
 	'''
-	out_filename = out_filename + '.dat'
+	out_filename = out_filename + '.txt'
 	with open(out_filename, 'w') as f:
 		for mem_address in range(0,ROM_SIZE):
 			# Start writing the memory values to the proper
@@ -258,16 +258,7 @@ def getMemoryValues(instructions, labels):
 		tokens = re.split(r'[,\s]\s*',line)
 
                 #print tokens
-		if tokens[0].isdigit():
-			# Store the initialized memory
-			# value  and contents to be set after the op
-			# codes are finished
-			tokens[0] = int(tokens[0])
-			tokens[2] = int(tokens[2])
-			if tokens[0] <= 511 and tokens[2] <= 511:
-				memorydict[tokens[0]] = hex(tokens[2])[2:].zfill(2)
-
-                elif len(tokens) == 1 and tokens[0] == '':
+                if len(tokens) == 1 and tokens[0] == '':
 			print('Empty Line {}'.format(lineNumber))
                         increment = 0
                         #lineNumber -= 1
@@ -284,7 +275,7 @@ def getMemoryValues(instructions, labels):
 		elif 'LOAD' in tokens:
 			# convert memory parameter to an integer
 			try:
-				tokens[2] = int(tokens[2])
+				tokens[2] = int(tokens[2], 16)
 			except ValueError:
 				print('Error at Line {}'.format(lineNumber))
 				print('LOAD memory location is not a number')
@@ -301,7 +292,8 @@ def getMemoryValues(instructions, labels):
 		 	# Put together instructions
                         binary_instruction = int((p+'000000'+ r), 2)
                         instruction1 = hex(binary_instruction)[2:].zfill(2)
-                        instruction2 = int(tokens[2])
+                        instruction2 = hex(tokens[2])[2:].zfill(2)
+
                         # Store in memorydict
 		 	memorydict[offset+0] = instruction1
 		 	memorydict[offset+1] = instruction2
@@ -309,7 +301,7 @@ def getMemoryValues(instructions, labels):
 
 		elif 'STORE' in tokens:
 			try:
-				tokens[1] = int(tokens[1])
+				tokens[1] = int(tokens[1], 16)
 			except ValueError:
 				print('Error at Line {}'.format(lineNumber))
 				print('STOR memory location is not a number')
@@ -326,7 +318,7 @@ def getMemoryValues(instructions, labels):
 		 	# Put together instructions
                         binary_instruction = int((p+'000001'+ r), 2)
                         instruction1 = hex(binary_instruction)[2:].zfill(2)
-                        instruction2 = int(tokens[1])
+                        instruction2 = hex(tokens[1])[2:].zfill(2)
 
 			# Store in memorydict
 			memorydict[offset+0] = instruction1
@@ -521,12 +513,12 @@ def getMemoryValues(instructions, labels):
                             instruction2 = labels[tokens[1]]
                         else:
 			    try:
-				tokens[1] = int(tokens[1])
+				tokens[1] = int(tokens[1], 16)
 			    except ValueError:
 				print('Error at Line {}'.format(lineNumber))
 				print('Address ADDR is not a number')
 				sys.exit(1)
-                            instruction2 = int(tokens[1])
+                            instruction2 = hex(tokens[1])[2:].zfill(2)
 
                         binary_instruction = 0b10010110
                         instruction1 = hex(binary_instruction)[2:].zfill(2)
@@ -541,12 +533,12 @@ def getMemoryValues(instructions, labels):
                             instruction2 = labels[tokens[1]]
                         else:
 			    try:
-				tokens[1] = int(tokens[1])
+				tokens[1] = int(tokens[1], 16)
 			    except ValueError:
 				print('Error at Line {}'.format(lineNumber))
 				print('Address ADDR is not a number')
 				sys.exit(1)
-                            instruction2 = int(tokens[1])
+                            instruction2 = hex(tokens[1])[2:].zfill(2)
 
                         binary_instruction = 0b10100110
                         instruction1 = hex(binary_instruction)[2:].zfill(2)
@@ -561,12 +553,12 @@ def getMemoryValues(instructions, labels):
                             instruction2 = labels[tokens[1]]
                         else:
 			    try:
-				tokens[1] = int(tokens[1])
+				tokens[1] = int(tokens[1], 16)
 			    except ValueError:
 				print('Error at Line {}'.format(lineNumber))
 				print('Address ADDR is not a number')
 				sys.exit(1)
-                            instruction2 = int(tokens[1])
+                            instruction2 = hex(tokens[1])[2:].zfill(2)
 
                         binary_instruction = 0b10110110
                         instruction1 = hex(binary_instruction)[2:].zfill(2)
@@ -582,13 +574,12 @@ def getMemoryValues(instructions, labels):
                             instruction2 = labels[tokens[1]]
                         else:
 			    try:
-				tokens[1] = int(tokens[1])
+				tokens[1] = int(tokens[1], 16)
 			    except ValueError:
 				print('Error at Line {}'.format(lineNumber))
 				print('Address ADDR is not a number')
 				sys.exit(1)
-                            instruction2 = int(tokens[1])
-
+                            instruction2 = hex(tokens[1])[2:].zfill(2)
 
                         binary_instruction = 0b00000111
                         instruction1 = hex(binary_instruction)[2:].zfill(2)
@@ -610,12 +601,12 @@ def getMemoryValues(instructions, labels):
                             instruction2 = labels[tokens[1]]
                         else:
 			    try:
-				tokens[1] = int(tokens[1])
+				tokens[1] = int(tokens[1], 16)
 			    except ValueError:
 				print('Error at Line {}'.format(lineNumber))
 				print('Address ADDR is not a number')
 				sys.exit(1)
-                            instruction2 = int(tokens[1])
+                            instruction2 = hex(tokens[1])[2:].zfill(2)
 
                         binary_instruction = 0b00001001
                         instruction1 = hex(binary_instruction)[2:].zfill(2)
@@ -643,6 +634,9 @@ def getMemoryValues(instructions, labels):
 			memorydict[offset+0] = instruction1
 			increment = 1
 
+                else:
+                        increment = 0
+
 		offset += increment
                 #print "Offset {} at line {}".format(offset, lineNumber)
 
@@ -651,8 +645,8 @@ def getMemoryValues(instructions, labels):
 
 def main(argv):
 	# Default file names options
-	inFILE = 'Instructions.dat'
-	outFILE= 'Encoding'
+	inFILE = 'mouse_demo.dat'
+	outFILE= 'Complete_Demo_ROM'
 	type = 'both'
 	try:
 		opts, args = getopt.getopt(argv, 'i:o:ht:',['inFILE','outFILE','help','type'])
