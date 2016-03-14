@@ -19,6 +19,26 @@
 # // Additional Comments: "python assembler.py" will process this file.
 # // 
 # //////////////////////////////////////////////////////////////////////////////////
+#INIT:   # Initialisation
+# Mouse
+#LOAD A, $00
+#STORE A0, A
+#LOAD A, $50
+#STORE A1, A
+#LOAD A, $3C
+#STORE A2, A
+#LOAD A, $80
+#STORE A3, A
+# LEDs
+#LOAD A, $00
+#STORE C0, A
+#LOAD A, $10
+#STORE C1, A
+# Seven Segment Displays
+#LOAD A, $00
+#STORE D0, A
+#LOAD A, $00
+#STORE D1, A
 
 # Main Inifinite Loop
 MAIN:
@@ -28,10 +48,10 @@ GOTO MAIN
 
 
 # Mouse Interrupt Service Routine
-MOUSE_ISR:
-
-# Connect MouseStatus to Rightmost 3 LEDs
+MOUSE_ISR: # Connect MouseStatus to Rightmost 3 LEDs
 LOAD A, A0	# Load MouseStatus to A
+LOAD B, $07	# Load mask 00000111 to B
+AND A	    # Save filtered results to A
 STORE C0, A	# Store A to Right LEDS
 
 
@@ -48,12 +68,16 @@ STORE D1, A	# Save A to Second 2 7-Seg Displays
 # Connect MouseZ to Leftmost 8 LEDs
 # A software implemention of 3-to-8 decoding (flowing leds)
 LOAD A, A3	# Load MouseZ to A
-STORE C1, A
+LOAD B, $07	# Load mask 11100000 to B
+AND B		# Save the masked result to A
+STORE C1, B
+GOTO END_MouseISR
+
 
 END_MouseISR:
 RETURN		# Return to where left (Main)
 
 
 # Timer ISR, not useful in this demo, so blank
-#TIMER_ISR:
-#RETURN
+TIMER_ISR:
+RETURN
