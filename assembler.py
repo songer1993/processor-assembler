@@ -1,14 +1,33 @@
 #! /usr/bin/python
 
+#//////////////////////////////////////////////////////////////////////////////////
+# // Company: University of Edinburgh
+# // Engineer: Qisong Wang (s1364207)
+# //
+# // Create Date: 01.03.2016 17:58:47
+# // Design Name: Mouse_Processor_Demo_Assembly
+# // Project Name: Mouse_Processor_Demo
+# // Target Devices: Basys3
+# // Tool Versions: Python 2.7 or 3
+# // Description: This is a assembler in Python, whcih takes the input from a file
+# // and converts it to the machine code (ROM) and constants (RAM) for a simple
+# // micro-controller implementation
+# // in Verilog on a Xilinx FPGA
+# //
+# // Dependencies: - None
+# //
+# // Revision:
+# // Revision 0.01 - File Created
+# // Additional Comments: "python assembler.py -i input_file -o output_file" will
+# //                      process the target file.
+# //
+# //////////////////////////////////////////////////////////////////////////////////
+
 
 import re
 import sys
 import getopt
-'''
-Takes the input from a file and converts it to the machine code
-for a simple micro-controller implementation in Verilog on a Xilinx FPGA
-Python Version: 2.7
-'''
+
 # Instruction   ->  Encoding
 #----------------|-------------------
 # Load R, M 		-> 0000000r, mmmmmmmm
@@ -38,45 +57,41 @@ Python Version: 2.7
 # DEREFERENCE R         -> 00001011+r
 
 ROM_SIZE = 256          # Instruction Memory of 256 bytes
+RAM_SIZE = 128          # RAM of 128 bytes
 
-def createCOEfile(out_filename, memory_vals, lines):
+constants = {}
+
+def createROMfile(out_filename, memory_vals):
 	'''
-	Creates a coe file containing comments and memory values
+	Creates a dat file containing just the values of memory at
+	their locations
 	'''
-	out_filename = out_filename + '.coe'
+	out_filename = out_filename +  '_ROM.txt'
 	with open(out_filename, 'w') as f:
-		f.write(' Coefficient file for initializing a 256x8 RAM\n')
-		f.write(' Filename: {}\n'.format(out_filename))
-		f.write('\n')
-		f.write('\n')
-		f.write('Instructions:\n')
-		for instruction in lines:
-			f.write('{}\n'.format(instruction))
-		f.write('memory_initialization_radix = 2\n')
-		f.write('memory_initialization_vector =\n')
 		for mem_address in range(0,ROM_SIZE):
 			# Start writing the memory values to the proper
 			# memory locations
 			if memory_vals.has_key(mem_address):
 				f.write(str(memory_vals[mem_address])+'\n')
 				#print'Address:{} Value:{}'.format(mem_address, memory_vals[mem_address])
+
 			else:
 				f.write('00\n')
 		f.write('')
 
 
-def createDATfile(out_filename, memory_vals):
+def createRAMfile(out_filename, memory_vals):
 	'''
 	Creates a dat file containing just the values of memory at
 	their locations
 	'''
-	out_filename = out_filename + '.txt'
+	out_filename = out_filename + '_RAM.txt'
 	with open(out_filename, 'w') as f:
-		for mem_address in range(0,ROM_SIZE):
+		for mem_address in range(0,RAM_SIZE):
 			# Start writing the memory values to the proper
 			# memory locations
-			if memory_vals.has_key(mem_address):
-				f.write(str(memory_vals[mem_address])+'\n')
+			if constants.has_key(mem_address):
+				f.write(str(constants[mem_address])+'\n')
 				#print'Address:{} Value:{}'.format(mem_address, memory_vals[mem_address])
 
 			else:
@@ -108,14 +123,14 @@ def readfile(in_path, out_filename, type):
 		sys.exit(0)
 	elif 'coe' in type:
 		# produce a coe type file
-		createCOEfile(out_filename, memory_vals, lines)
+		createROMfile(out_filename, memory_vals)
 	elif 'dat' in type:
 		# produce a dat file, which is just barebones and no comments
-		createDATfile(out_filename, memory_vals)
+		createRAMfile(out_filename, memory_vals)
 	elif 'both' in type:
 		# produce both dat file and coe file
-		createCOEfile(out_filename, memory_vals, lines)
-		createDATfile(out_filename, memory_vals)
+		createROMfile(out_filename, memory_vals)
+		createRAMfile(out_filename, memory_vals)
 
 
 def getLabelAddresses(instructions):
@@ -246,10 +261,13 @@ def getMemoryValues(instructions, labels):
 	'''
 	# Create empty dictionary
         memorydict = {}
+        global constants
 
 	# Create variables for keeping track of memory blocks
 	offset = 0
 	increment = 1
+        offset1 = 0
+        increment1 = 1
 	lineNumber = 0
 
 	for line in instructions:
@@ -261,6 +279,7 @@ def getMemoryValues(instructions, labels):
                 if len(tokens) == 1 and tokens[0] == '':
 			print('Empty Line {}'.format(lineNumber))
                         increment = 0
+                        increment1 = 0
                         #lineNumber -= 1
                         continue
 
@@ -269,17 +288,25 @@ def getMemoryValues(instructions, labels):
                 elif '#' in tokens[0]:
                         #lineNumber -= 1
                         increment = 0
+                        increment1 = 0
                         continue
 
 
 		elif 'LOAD' in tokens:
 			# convert memory parameter to an integer
-			try:
+                        if '$' in tokens[2]:
+                            constants[offset1] = tokens[2][1:]
+                            increment1 = 1
+                            instruction2 = hex(offset1)[2:].zfill(2)
+                        else:
+			    try:
 				tokens[2] = int(tokens[2], 16)
-			except ValueError:
+			    except ValueError:
 				print('Error at Line {}'.format(lineNumber))
 				print('LOAD memory location is not a number')
 				sys.exit(1)
+                            instruction2 = hex(tokens[2])[2:].zfill(2)
+
 			if 'A' not in tokens[1] and 'B' not in tokens[1]:
 				print('ERROR at Line {}'.format(lineNumber))
 				print('Unknown Register {}'.format(tokens[1]))
@@ -292,7 +319,6 @@ def getMemoryValues(instructions, labels):
 		 	# Put together instructions
                         binary_instruction = int((p+'000000'+ r), 2)
                         instruction1 = hex(binary_instruction)[2:].zfill(2)
-                        instruction2 = hex(tokens[2])[2:].zfill(2)
 
                         # Store in memorydict
 		 	memorydict[offset+0] = instruction1
@@ -324,6 +350,7 @@ def getMemoryValues(instructions, labels):
 			memorydict[offset+0] = instruction1
 		 	memorydict[offset+1] = instruction2
 			increment = 2
+                        increment1 = 0
 
 		elif 'ADD' in tokens:
 			# Set bit representing the register
@@ -338,6 +365,7 @@ def getMemoryValues(instructions, labels):
                         instruction1 = hex(binary_instruction)[2:].zfill(2)
 			memorydict[offset+0] = instruction1
 			increment = 1
+                        increment1 = 0
 
 		elif 'SUB' in tokens:
 			# Set bit representing the register
@@ -352,6 +380,7 @@ def getMemoryValues(instructions, labels):
                         instruction1 = hex(binary_instruction)[2:].zfill(2)
 			memorydict[offset+0] = instruction1
 			increment = 1
+                        increment1 = 0
 
 		elif 'MULTIPLY' in tokens:
 			# Set bit representing the register
@@ -366,6 +395,7 @@ def getMemoryValues(instructions, labels):
                         instruction1 = hex(binary_instruction)[2:].zfill(2)
 			memorydict[offset+0] = instruction1
 			increment = 1
+                        increment1 = 0
 
 		elif 'SHIFT_LEFT' in tokens:
 			# Set bit representing the register
@@ -380,6 +410,7 @@ def getMemoryValues(instructions, labels):
                         instruction1 = hex(binary_instruction)[2:].zfill(2)
 			memorydict[offset+0] = instruction1
 			increment = 1
+                        increment1 = 0
 
 		elif 'SHIFT_RIGHT' in tokens:
 			# Set bit representing the register
@@ -394,6 +425,7 @@ def getMemoryValues(instructions, labels):
                         instruction1 = hex(binary_instruction)[2:].zfill(2)
 			memorydict[offset+0] = instruction1
 			increment = 1
+                        increment1 = 0
 
 		elif 'INCREMENT' in tokens:
 			# Set bit representing the register
@@ -408,6 +440,7 @@ def getMemoryValues(instructions, labels):
                         instruction1 = hex(binary_instruction)[2:].zfill(2)
 			memorydict[offset+0] = instruction1
 			increment = 1
+                        increment1 = 0
 
 		elif 'DECREMENT' in tokens:
 			# Set bit representing the register
@@ -422,6 +455,7 @@ def getMemoryValues(instructions, labels):
                         instruction1 = hex(binary_instruction)[2:].zfill(2)
 			memorydict[offset+0] = instruction1
 			increment = 1
+                        increment1 = 0
 
 		elif 'IS_EQUAL' in tokens:
 			# Set bit representing the register
@@ -436,6 +470,7 @@ def getMemoryValues(instructions, labels):
                         instruction1 = hex(binary_instruction)[2:].zfill(2)
 			memorydict[offset+0] = instruction1
 			increment = 1
+                        increment1 = 0
 
 		elif 'GREATER_THAN' in tokens:
 			# Set bit representing the register
@@ -450,6 +485,7 @@ def getMemoryValues(instructions, labels):
                         instruction1 = hex(binary_instruction)[2:].zfill(2)
 			memorydict[offset+0] = instruction1
 			increment = 1
+                        increment1 = 0
 
 
 		elif 'LESS_THAN' in tokens:
@@ -465,6 +501,7 @@ def getMemoryValues(instructions, labels):
                         instruction1 = hex(binary_instruction)[2:].zfill(2)
 			memorydict[offset+0] = instruction1
 			increment = 1
+                        increment1 = 0
 
 		elif 'AND' in tokens:
 			# Set bit representing the register
@@ -479,6 +516,7 @@ def getMemoryValues(instructions, labels):
                         instruction1 = hex(binary_instruction)[2:].zfill(2)
 			memorydict[offset+0] = instruction1
 			increment = 1
+                        increment1 = 0
 
 		elif 'OR' in tokens:
 			# Set bit representing the register
@@ -493,6 +531,7 @@ def getMemoryValues(instructions, labels):
                         instruction1 = hex(binary_instruction)[2:].zfill(2)
 			memorydict[offset+0] = instruction1
 			increment = 1
+                        increment1 = 0
 
 		elif 'XOR' in tokens:
 			# Set bit representing the register
@@ -507,6 +546,7 @@ def getMemoryValues(instructions, labels):
                         instruction1 = hex(binary_instruction)[2:].zfill(2)
 			memorydict[offset+0] = instruction1
 			increment = 1
+                        increment1 = 0
 
 		elif 'BREQ' in tokens:
                         if tokens[1] in labels:
@@ -527,6 +567,7 @@ def getMemoryValues(instructions, labels):
 			memorydict[offset+0] = instruction1
 		 	memorydict[offset+1] = instruction2
 			increment = 2
+                        increment1 = 0
 
 		elif 'BGTQ' in tokens:
                         if tokens[1] in labels:
@@ -547,6 +588,7 @@ def getMemoryValues(instructions, labels):
 			memorydict[offset+0] = instruction1
 		 	memorydict[offset+1] = instruction2
 			increment = 2
+                        increment1 = 0
 
 		elif 'BLTQ' in tokens:
                         if tokens[1] in labels:
@@ -567,6 +609,7 @@ def getMemoryValues(instructions, labels):
 			memorydict[offset+0] = instruction1
 		 	memorydict[offset+1] = instruction2
 			increment = 2
+                        increment1 = 0
 
 
 		elif 'GOTO' in tokens:
@@ -588,12 +631,14 @@ def getMemoryValues(instructions, labels):
 			memorydict[offset+0] = instruction1
 		 	memorydict[offset+1] = instruction2
 			increment = 2
+                        increment1 = 0
 
 		elif 'GOTO_IDLE' in tokens:
                         binary_instruction = 0b00001000
                         instruction1 = hex(binary_instruction)[2:].zfill(2)
 			memorydict[offset+0] = instruction1
 			increment = 1
+                        increment1 = 0
 
 
 		elif 'FUNCTION_CALL' in tokens:
@@ -615,12 +660,14 @@ def getMemoryValues(instructions, labels):
 			memorydict[offset+0] = instruction1
 		 	memorydict[offset+1] = instruction2
 			increment = 2
+                        increment1 = 0
 
                 elif 'RETURN' in tokens:
                         binary_instruction = 0b00001010
                         instruction1 = hex(binary_instruction)[2:].zfill(2)
 			memorydict[offset+0] = instruction1
 			increment = 1
+                        increment1 = 0
 
                 elif 'DEREFERENCE' in tokens:
 			# Set bit representing the register
@@ -633,11 +680,14 @@ def getMemoryValues(instructions, labels):
                         instruction1 = hex(binary_instruction)[2:].zfill(2)
 			memorydict[offset+0] = instruction1
 			increment = 1
+                        increment1 = 0
 
                 else:
                         increment = 0
+                        increment1 = 0
 
 		offset += increment
+                offset1 += increment1
                 #print "Offset {} at line {}".format(offset, lineNumber)
 
 	return memorydict
@@ -645,8 +695,8 @@ def getMemoryValues(instructions, labels):
 
 def main(argv):
 	# Default file names options
-	inFILE = 'mouse_demo.dat'
-	outFILE= 'Complete_Demo_ROM'
+	inFILE = 'mouse_demo.asm'
+	outFILE= 'Complete_Demo'
 	type = 'both'
 	try:
 		opts, args = getopt.getopt(argv, 'i:o:ht:',['inFILE','outFILE','help','type'])
