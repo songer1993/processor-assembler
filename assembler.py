@@ -10,7 +10,7 @@
 # // Target Devices: Basys3
 # // Tool Versions: Python 2.7 or 3
 # // Description: This is a assembler in Python, whcih takes the input from a file
-# //              and converts it to the machine code (ROM) and constants (RAM) for 
+# //              and converts it to the machine code (ROM) and constants (RAM) for
 # //              a simple micro-controller implementation in Verilog on a Xilinx FPGA
 # //		  It supports:
 # //			- Multiple labels
@@ -40,8 +40,8 @@ import getopt
 # ADD R 		-> 0000010r
 # SUB R 		-> 0001010r
 # MUTIPLY R             -> 0010010r
-# SHIFT_LEFT R          -> 0011010r
-# SHIFT_RIGHT R         -> 0100010r
+# SHIFTL R          -> 0011010r
+# SHIFTR R         -> 0100010r
 # INCREMENT R           -> 0101010r
 # DECREMENT R           -> 0110010r
 # IS_EQUAL R            -> 0111010r
@@ -58,7 +58,7 @@ import getopt
 # GOTO_IDLE             -> 00001000
 # FUNCTION_CALL A       -> 00001001, aaaaaaaa
 # RETURN                -> 00001010
-# DEREFERENCE R         -> 00001011+r
+# DEREF R         -> 00001011+r
 
 ROM_SIZE = 256          # Instruction Memory of 256 bytes
 RAM_SIZE = 128          # RAM of 128 bytes
@@ -168,14 +168,14 @@ def getLabelAddresses(instructions):
 		elif '#' in tokens[0]:
 			increment = 0
 			continue
-			
+
 		elif 'IN' in tokens:
 			inputs[tokens[2]] = tokens[1]
 			print("Inputs lists appended: ")
 			print inputs
 			increment = 0
 			continue
-			
+
 		elif 'OUT' in tokens:
 			outputs[tokens[2]] = tokens[1]
 			print("Output lists appended ")
@@ -186,7 +186,7 @@ def getLabelAddresses(instructions):
 		elif 'LOAD' in tokens:
 			increment = 2
 
-		elif 'STORE' in tokens:
+		elif 'WRITE' in tokens:
 			increment = 2
 
 		elif 'ADD' in tokens:
@@ -195,25 +195,25 @@ def getLabelAddresses(instructions):
 		elif 'SUB' in tokens:
 			increment = 1
 
-		elif 'MULTIPLY' in tokens:
+		elif 'MUL' in tokens:
 			increment = 1
 
-		elif 'SHIFT_LEFT' in tokens:
+		elif 'SHIFTL' in tokens:
 			increment = 1
 
-		elif 'SHIFT_RIGHT' in tokens:
+		elif 'SHIFTR' in tokens:
 			increment = 1
 
-		elif 'INCREMENT_A' in tokens:
+		elif 'INCRA' in tokens:
 			increment = 1
 
-		elif 'INCREMENT_B' in tokens:
+		elif 'INCRB' in tokens:
 			increment = 1
 
-		elif 'DECREMENT_A' in tokens:
+		elif 'DECA' in tokens:
 			increment = 1
 
-		elif 'DECREMENT_B' in tokens:
+		elif 'DECB' in tokens:
 			increment = 1
 
 		elif 'IS_EQUAL' in tokens:
@@ -255,7 +255,7 @@ def getLabelAddresses(instructions):
 		elif 'RETURN' in tokens:
 			increment = 1
 
-		elif 'DEREFERENCE' in tokens:
+		elif 'DEREF' in tokens:
 			increment = 1
 
 		elif 'TIMER_ISR' in tokens[0]:
@@ -315,11 +315,11 @@ def getMemoryValues(instructions, labels):
 			increment = 0
 			increment1 = 0
 			continue
-			
+
 		elif 'IN' in tokens:
 			increment = 0
 			continue
-			
+
 		elif 'OUT' in tokens:
 			increment = 0
 			continue
@@ -336,7 +336,7 @@ def getMemoryValues(instructions, labels):
 					print "load an alias"
 					print inputs[tokens[2]]
 					tokens[2] = inputs[tokens[2]]
-				
+
 				# convert it to integer
 				try:
 					tokens[2] = int(tokens[2], 16)
@@ -367,7 +367,7 @@ def getMemoryValues(instructions, labels):
 		elif 'STORE' in tokens:
 			# convert an alias to its memory address
 			if tokens[2] in outputs:
-				tokens[2] = outputs[tokens[2]] 
+				tokens[2] = outputs[tokens[2]]
 			# convert it to integer
 			try:
 				tokens[2] = int(tokens[2], 16)
@@ -423,7 +423,7 @@ def getMemoryValues(instructions, labels):
 			increment = 1
 			increment1 = 0
 
-		elif 'MULTIPLY' in tokens:
+		elif 'MUL' in tokens:
 			# Set bit representing the register
 			if 'A' not in tokens[1] and 'B' not in tokens[1]:
 				print('ERROR at Line {}'.format(lineNumber))
@@ -438,7 +438,7 @@ def getMemoryValues(instructions, labels):
 			increment = 1
 			increment1 = 0
 
-		elif 'SHIFT_LEFT' in tokens:
+		elif 'SHIFTL' in tokens:
 			# Set bit representing the register
 			if 'A' not in tokens[1] and 'B' not in tokens[1]:
 				print('ERROR at Line {}'.format(lineNumber))
@@ -453,7 +453,7 @@ def getMemoryValues(instructions, labels):
 			increment = 1
 			increment1 = 0
 
-		elif 'SHIFT_RIGHT' in tokens:
+		elif 'SHIFTR' in tokens:
 			# Set bit representing the register
 			if 'A' not in tokens[1] and 'B' not in tokens[1]:
 				print('ERROR at Line {}'.format(lineNumber))
@@ -468,7 +468,7 @@ def getMemoryValues(instructions, labels):
 			increment = 1
 			increment1 = 0
 
-		elif 'INCREMENT_A' in tokens:
+		elif 'INCRA' in tokens:
 			# Set bit representing the register
 			if 'A' not in tokens[1] and 'B' not in tokens[1]:
 				print('ERROR at Line {}'.format(lineNumber))
@@ -483,7 +483,7 @@ def getMemoryValues(instructions, labels):
 			increment = 1
 			increment1 = 0
 
-		elif 'INCREMENT_B' in tokens:
+		elif 'INCRB' in tokens:
 			# Set bit representing the register
 			if 'A' not in tokens[1] and 'B' not in tokens[1]:
 				print('ERROR at Line {}'.format(lineNumber))
@@ -499,7 +499,7 @@ def getMemoryValues(instructions, labels):
 			increment1 = 0
 
 
-		elif 'DECREMENT_A' in tokens:
+		elif 'DECA' in tokens:
 			# Set bit representing the register
 			if 'A' not in tokens[1] and 'B' not in tokens[1]:
 				print('ERROR at Line {}'.format(lineNumber))
@@ -514,7 +514,7 @@ def getMemoryValues(instructions, labels):
 			increment = 1
 			increment1 = 0
 
-		elif 'DECREMENT_B' in tokens:
+		elif 'DECB' in tokens:
 			# Set bit representing the register
 			if 'A' not in tokens[1] and 'B' not in tokens[1]:
 				print('ERROR at Line {}'.format(lineNumber))
@@ -742,7 +742,7 @@ def getMemoryValues(instructions, labels):
 			increment = 1
 			increment1 = 0
 
-		elif 'DEREFERENCE' in tokens:
+		elif 'DEREF' in tokens:
 		# Set bit representing the register
 			if 'A' not in tokens[1] and 'B' not in tokens[1]:
 				print('ERROR at Line {}'.format(lineNumber))
@@ -814,14 +814,14 @@ def main(argv):
 			print('Instruction   ->  Encoding')
 			print('----------------|-------------------')
 			print('Load R, M 		-> 0000000r, mmmmmmmm')
-			print('Load R, $V 		-> 0000000r, mmmmmmmm (store vvvvvvvv in an autolocated RAM address')			
+			print('Load R, $V 		-> 0000000r, mmmmmmmm (store vvvvvvvv in an autolocated RAM address')
 			print('STORE M, R 		-> 0000001r, mmmmmmmm')
 			print('#############ALU###################')
 			print('ADD R 			-> 0000010r')
 			print('SUB R 			-> 0001010r')
 			print('MUTIPLY R             	-> 0010010r')
-			print('SHIFT_LEFT R          	-> 0011010r')
-			print('SHIFT_RIGHT R         	-> 0100010r')
+			print('SHIFTL R          	-> 0011010r')
+			print('SHIFTR R         	-> 0100010r')
 			print('INCREMENT R           	-> 0101010r')
 			print('DECREMENT R           	-> 0110010r')
 			print('IS_EQUAL R            	-> 0111010r')
@@ -838,7 +838,7 @@ def main(argv):
 			print('GOTO_IDLE             	-> 00001000')
 			print('FUNCTION_CALL A       	-> 00001001, aaaaaaaa')
 			print('RETURN                	-> 00001010')
-			print('DEREFERENCE R         	-> 00001011+r')
+			print('DEREF R         	-> 00001011+r')
 			sys.exit(0)
 
 
